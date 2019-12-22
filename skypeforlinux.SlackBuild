@@ -1,0 +1,127 @@
+#!/bin/sh
+
+# Slackware build script for skypeforlinux
+
+# Copyright 2017, 2018, 2019  Mario Preksavec, Zagreb, Croatia
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR "AS IS" AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+PRGNAM=skypeforlinux
+VERSION=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 15-24)
+BUILD=${BUILD:-1}
+TAG=${TAG:-_SBo}
+
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) ARCH=i586 ;;
+    arm*) ARCH=arm ;;
+       *) ARCH=$( uname -m ) ;;
+  esac
+fi
+
+CWD=$(pwd)
+TMP=${TMP:-/tmp/SBo}
+PKG=$TMP/package-$PRGNAM
+OUTPUT=${OUTPUT:-/tmp}
+SBUILD=$TMP/$PRGNAM-$VERSION
+
+if [ "$ARCH" != "x86_64" ]; then
+  echo "$ARCH is not supported."
+  exit 1
+fi
+
+set -e
+
+IFINST=$(ls /var/log/packages| grep skype | cut -c 15-24)
+if [ "$IFINST" = "$VERSION" ]; then
+  echo you are running the latest version
+  sleep 3
+  exit
+else
+echo going to upgrade skypeforlinux  
+fi
+
+
+
+rm -rf $PKG
+rm -rf $SBUILD 
+mkdir -p $TMP $PKG $SBUILD $OUTPUT
+cd $SBUILD
+
+SKLATEST=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
+wget -c https://repo.skype.com/rpm/stable/$SKLATEST
+cd $PKG
+rpm2cpio $SBUILD/$SKLATEST |cpio -idmv
+ 
+chown -R root:root .
+find -L . \
+ \( -perm 777 -o -perm 775 -o -perm 750 -o -perm 711 -o -perm 555 \
+  -o -perm 511 \) -exec chmod 755 {} \; -o \
+ \( -perm 666 -o -perm 664 -o -perm 640 -o -perm 600 -o -perm 444 \
+  -o -perm 440 -o -perm 400 \) -exec chmod 644 {} \;
+
+
+
+mkdir -p $PKG/usr/doc/$PRGNAM-$VERSION
+mv $PKG/usr/share/$PRGNAM/LICENSE* $PKG/usr/doc/$PRGNAM-$VERSION
+mv $PKG/usr/share/doc/$PRGNAM/* $PKG/usr/doc/$PRGNAM-$VERSION
+rm -rf $PKG/usr/share/doc
+# Fixes: Help -> About Skype -> Third Party Notices
+ln -s $PRGNAM-$VERSION $PKG/usr/doc/$PRGNAM
+cat $CWD/$PRGNAM.SlackBuild > $PKG/usr/doc/$PRGNAM-$VERSION/$PRGNAM.SlackBuild
+cd $SBUILD
+mkdir -p $PKG/install
+cat > slack-desc <<EOF
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+             |-----handy-ruler------------------------------------------------------|
+skypeforlinux: skypeforlinux (an instant messaging app)
+skypeforlinux:
+skypeforlinux: Skype is an instant messaging app that provides online text message
+skypeforlinux: and video chat services. Users may transmit both text and video
+skypeforlinux: messages and may exchange digital documents such as images, text, and
+skypeforlinux: video. Skype allows video conference calls.
+skypeforlinux:
+skypeforlinux: Homepage: https://www.skype.com/
+skypeforlinux:
+skypeforlinux:
+skypeforlinux:
+EOF
+cat > doinst.sh <<EOF
+if [ -x /usr/bin/update-desktop-database ]; then
+  /usr/bin/update-desktop-database -q usr/share/applications >/dev/null 2>&1
+fi
+
+if [ -e usr/share/icons/hicolor/icon-theme.cache ]; then
+  if [ -x /usr/bin/gtk-update-icon-cache ]; then
+    /usr/bin/gtk-update-icon-cache -f usr/share/icons/hicolor >/dev/null 2>&1
+  fi
+fi
+EOF
+cat $SBUILD/slack-desc > $PKG/install/slack-desc
+cat $SBUILD/doinst.sh > $PKG/install/doinst.sh
+
+cd $PKG
+/sbin/makepkg -l y -c n $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}
+upgradepkg --install-new  $OUTPUT/$PRGNAM-$VERSION-$ARCH-$BUILD$TAG.${PKGTYPE:-tgz}

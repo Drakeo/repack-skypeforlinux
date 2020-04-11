@@ -24,14 +24,14 @@
 
 PRGNAM=skypeforlinux
 #find version
-URL3=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
-URL2=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-36)
+URL3=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
+URL2=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-36)
 if wget --spider $URL 2>/dev/null; then
-SKLATEST=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
-VERSION=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 15-24)
+SKLATEST=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
+VERSION=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 15-24)
 else
-SKLATEST=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-36)
-VERSION=$(wget -qO- https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 15-23)
+SKLATEST=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-36)
+VERSION=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 15-23)
 fi
 BUILD=${BUILD:-1}
 TAG=${TAG:-_SBo}
@@ -82,7 +82,7 @@ cd $SBUILD
 
 echo $SKLATEST
 sleep 5
-wget -c https://repo.skype.com/rpm/stable/$SKLATEST
+curl -C - -O  https://repo.skype.com/rpm/stable/$SKLATEST
 cd $PKG
 rpm2cpio $SBUILD/$SKLATEST |cpio -idmv
  

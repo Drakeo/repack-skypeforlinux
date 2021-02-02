@@ -24,9 +24,10 @@
 
 PRGNAM=skypeforlinux
 #find version
-URL3=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
+URL=https://repo.skype.com/rpm/stable/ 
 URL2=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-36)
-if wget --spider $URL 2>/dev/null; then
+URL3=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
+if wget -q --spider $URL/$URL3 ; then
 SKLATEST=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 1-37)
 VERSION=$(curl -s https://repo.skype.com/rpm/stable/ | sed -e 's/<[^>]*>//g' | grep rpm | tail -1 | cut -c 15-24)
 else
@@ -57,17 +58,17 @@ fi
 
 set -e
 #find installed version
-IFINST3=$(ls /var/log/packages| grep skype | cut -c 15-24)
 IFINST2=$(ls /var/log/packages| grep skype | cut -c 15-23)
-if [ "$IFINST3" = "$VERSION" ]; then
+IFINST3=$(ls /var/log/packages| grep skype | cut -c 15-24)
+if [ "$IFINST2" = "$VERSION" ]; then
   echo you are running the latest version
   sleep 3
   exit
 else
-echo check for 2 digit version 
+echo check for 3 digit version 
 fi
 
-if [ "$IFINST2" = "$VERSION" ]; then
+if [ "$IFINST3" = "$VERSION" ]; then
   echo you are running the latest version
   sleep 3
   exit
